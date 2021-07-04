@@ -1,0 +1,232 @@
+[comment encoding = UTF-8 /]
+[module generateuppaal('http://www.eclipse.org/uml2/5.0.0/UML', 'http://www.eclipse.org/papyrus/0.7.0/SysML', 'http://www.eclipse.org/papyrus/0.7.0/SysML/Activities', 'http://www.eclipse.org/papyrus/0.7.0/SysML/Blocks', 'http://www.eclipse.org/papyrus/0.7.0/SysML/Constraints', 'http://www.eclipse.org/papyrus/0.7.0/SysML/PortAndFlows', 'http://www.eclipse.org/papyrus/0.7.0/SysML/ModelElements', 'http://www.eclipse.org/papyrus/0.7.0/SysML/StateMachines', 'http://www.eclipse.org/papyrus/0.7.0/SysML/Requirements', 'http://www.eclipse.org/emf/2002/Ecore', 'http://www.eclipse.org/uml2/5.0.0/Types', 'http://www.eclipse.org/uml2/5.0.0/UML/Profile/Standard')]
+[template public generateElement(aModel : Model)]
+[comment @main/]
+[if (aModel.name.equalsIgnoreCase('elevator_model'))]
+welcom in elevator casestudy
+[elseif]
+
+[prepareRequirementFile(aModel)/]
+[file ('StateMachine.xta', false)]
+[aModel.name/]
+// Global Declaration
+[for (stmachine : StateMachine | aModel.ownedElement->filter(StateMachine))]
+[if(stmachine.getValue(stmachine.getAppliedStereotype('Profile::GlobalDeclaration'), 'Properties').toString() <> 'invalid')]
+	[for(ocl:OclAny | stmachine.getValue(stmachine.getAppliedStereotype('Profile::GlobalDeclaration'), 'Properties'))]
+		[if (ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('true'))]
+const [ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+		[elseif(ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('false'))]
+[ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+		[/if]
+	[/for]
+[/if]
+[/for]	
+// Template Definition
+
+[generateXTAFile(aModel)/]
+
+// System Definition
+[for (stmachine : StateMachine | aModel.ownedElement->filter(StateMachine))]
+[if(stmachine.getValue(stmachine.getAppliedStereotype('Profile::SystemDeclaration'), 'Properties').toString() <> 'invalid')]
+	[for(ocl:OclAny | stmachine.getValue(stmachine.getAppliedStereotype('Profile::SystemDeclaration'), 'Properties'))]
+		[if (ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('true'))]
+const [ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+
+		[elseif(ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('false'))]
+[ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+
+		[/if]
+	[/for]
+[/if]
+
+[if(stmachine.getValue(stmachine.getAppliedStereotype('Profile::SystemDeclaration'), 'initilizeSystem').toString() <> 'invalid')]
+	[for(ocl:OclAny | stmachine.getValue(stmachine.getAppliedStereotype('Profile::SystemDeclaration'), 'initilizeSystem'))]	
+		[if (ocl.oclAsType(Operation).name.equalsIgnoreCase('initilizeSystem'))]
+       		[for (com : FunctionBehavior | ocl.oclAsType(Operation).method->filter(FunctionBehavior))]
+[com._body/]
+            [/for]
+        [/if]	
+	[/for]
+[/if]
+[/for]
+[/file]
+[/if]
+
+
+
+[/template]
+
+[template public generateXTAFile(m: Model)]
+[let sm : StateMachine = (m.eAllContents(StateMachine)->first())]
+[for(r: Region | sm.ownedElement -> filter(Region))]
+	[for(initialstatecheck: Pseudostate | r.ownedElement -> filter(Pseudostate))]
+    	[if((initialstatecheck.kind.toString() = 'initial')<>false)]
+process [sm.name/]([if(sm.getValue(sm.getAppliedStereotype('Profile::LocalDeclaration'), 'TemplateParam').toString()<> 'invalid')][for(ocl:OclAny | sm.getValue(sm.getAppliedStereotype('Profile::LocalDeclaration'), 'TemplateParam')) separator (',')][if (ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('true'))]const [ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][elseif(ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('false'))][ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][/if][/for][/if]){
+
+// local Declaration
+	
+[if(sm.getValue(sm.getAppliedStereotype('Profile::LocalDeclaration'), 'Properties').toString()<> 'invalid')]
+	[for(ocl:OclAny | sm.getValue(sm.getAppliedStereotype('Profile::LocalDeclaration'), 'Properties'))]
+		[if (ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('true'))]
+const [ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+		[elseif(ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('false'))]
+[ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+		[/if]
+	[/for]
+[/if]
+[if(sm.getValue(sm.getAppliedStereotype('Profile::LocalDeclaration'), 'Operations').toString()<> 'invalid')]
+	[for(ocl:OclAny | sm.getValue(sm.getAppliedStereotype('Profile::LocalDeclaration'), 'Operations'))]
+[ocl.oclAsType(Operation).type.name/] [ocl.oclAsType(Operation).name/]()
+[for (com : FunctionBehavior | ocl.oclAsType(Operation).method->filter(FunctionBehavior))]
+[com._body/]
+[/for]
+	[/for]
+[/if]
+	state
+		[for (st : State | r.ownedElement -> filter(State))]
+		[st.name/][if (st.stateInvariant.specification.stringValue().toString() <> 'invalid')]{[st.stateInvariant.specification.stringValue()/]}[/if],
+		[/for]
+		[for(initialstate: Pseudostate | r.ownedElement -> filter(Pseudostate))]
+		[if(initialstate.kind.toString() <> 'initial')]
+        [initialstate.name/][if(initialstate.getValue(initialstate.getAppliedStereotype('Profile::Invariant'), 'InvariantText').toString()<> 'invalid')][for(ocl:OclAny | initialstate.getValue(initialstate.getAppliedStereotype('Profile::Invariant'), 'InvariantText'))]{[ocl/]}[/for][/if],
+		[/if]
+		[/for]
+		[for(initialstate: Pseudostate | r.ownedElement -> filter(Pseudostate))]
+		[if(initialstate.kind.toString() = 'initial')] 
+		[initialstate.name/];
+		[for (fs : State | r.ownedElement -> filter(FinalState))]
+    commit
+		[fs.name/];
+		[/for]
+	init [initialstate.name/];
+		[/if]
+		[/for]
+	trans
+	[for(trans: Transition | r.ownedElement -> filter(Transition) )separator (',') after(';')]
+	   [if (trans.source.name <> 'invalid' or trans.target.name <> 'invalid')]
+		[trans.source.name/] -> [trans.target.name/]
+		{
+												   
+													
+													[if(trans.getValue(trans.getAppliedStereotype('Profile::Select'), 'Value').toString()<> 'invalid')]
+													[for(ocl:OclAny | trans.getValue(trans.getAppliedStereotype('Profile::Select'), 'Value'))]
+													select [ocl.oclAsType(Property).name/] : [ocl.oclAsType(Property).type.name/] ;
+													[/for][/if]
+									               [if (trans.guard.specification.stringValue().toString() <> 'invalid')]
+									               guard [trans.guard.specification.stringValue()/];
+									               [/if] 
+									               [for (trig : Trigger | trans.trigger -> filter(Trigger))]
+									                [if(trig.name.toString()<>'')]
+									               	sync [trig.name/];
+									                [/if]
+									               [/for]
+									               
+									               
+									              [if (trans.effect.oclIsUndefined()<>true)]   
+									              	assign [trans.effect.oclAsType(OpaqueBehavior)._body/];
+									             [/if]  
+		}
+		[/if]
+	[/for]
+	}
+[/if]
+[/for]
+[for (st : State | r.ownedElement -> filter(State))]
+	[for (hasreg: Region | st.ownedElement-> filter(Region))]
+		[if (hasreg<>null)]
+			[processNestedStateMachine(st,m)/]
+		[/if]
+	[/for]
+[/for]
+[/for]
+[/let]
+[/template]
+[template public processNestedStateMachine(stm: State, m: Model)]
+
+process [stm.name/]([if(stm.getValue(stm.getAppliedStereotype('Profile::LocalDeclaration'), 'TemplateParam').toString()<> 'invalid')][for(ocl:OclAny | stm.getValue(stm.getAppliedStereotype('Profile::LocalDeclaration'), 'TemplateParam')) separator (',')][if (ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('true'))]const [ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][elseif(ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('false'))][ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][/if][/for][/if]){
+
+// local Declaration
+	
+[if(stm.getValue(stm.getAppliedStereotype('Profile::LocalDeclaration'), 'Properties').toString()<> 'invalid')]
+	[for(ocl:OclAny | stm.getValue(stm.getAppliedStereotype('Profile::LocalDeclaration'), 'Properties'))]
+		[if (ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('true'))]
+const [ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+		[elseif(ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('false'))]
+[ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+		[/if]
+	[/for]
+[/if]
+[if(stm.getValue(stm.getAppliedStereotype('Profile::LocalDeclaration'), 'Operations').toString()<> 'invalid')]
+	[for(ocl:OclAny | stm.getValue(stm.getAppliedStereotype('Profile::LocalDeclaration'), 'Operations'))]
+[ocl.oclAsType(Operation).type.name/] [ocl.oclAsType(Operation).name/]([for (prop : Parameter | ocl.oclAsType(Operation).ownedParameter->filter(Parameter))][if(prop.direction.toString()= 'in')][prop.type.name/] [prop.name/][/if][/for])
+[for (com : FunctionBehavior | ocl.oclAsType(Operation).method->filter(FunctionBehavior))]
+[com._body/]
+[/for]
+	[/for]
+[/if]
+
+
+[for(r: Region | stm.ownedElement -> filter(Region))]
+   state
+		[for (st : State | r.ownedElement -> filter(State))]
+		[st.name/][if (st.stateInvariant.specification.stringValue().toString() <> 'invalid')]{[st.stateInvariant.specification.stringValue()/]}[/if],
+		[/for]
+		[for(initialstate: Pseudostate | r.ownedElement -> filter(Pseudostate))]
+		[if(initialstate.kind.toString() <> 'initial')]
+        [initialstate.name/][if(initialstate.getValue(initialstate.getAppliedStereotype('Profile::Invariant'), 'InvariantText').toString()<> 'invalid')][for(ocl:OclAny | initialstate.getValue(initialstate.getAppliedStereotype('Profile::Invariant'), 'InvariantText'))]{[ocl/]}[/for][/if],
+		[/if]
+		[/for]
+		[for(initialstate: Pseudostate | r.ownedElement -> filter(Pseudostate))]
+		[if(initialstate.kind.toString() = 'initial')] 
+		[initialstate.name/];
+		[for (fs : State | r.ownedElement -> filter(FinalState))]
+    commit
+		[fs.name/];
+		[/for]
+	init [initialstate.name/];
+		[/if]
+		[/for]
+	
+		trans
+	    	[for(trans: Transition | r.ownedElement -> filter(Transition) ) separator(',') after(';')]
+	     	 [trans.source.name/] -> [trans.target.name/]
+	         {
+					[if(trans.getValue(trans.getAppliedStereotype('Profile::Select'), 'Value').toString()<> 'invalid')]
+					[for(ocl:OclAny | trans.getValue(trans.getAppliedStereotype('Profile::Select'), 'Value'))]
+					select [ocl.oclAsType(Property).name/] : [ocl.oclAsType(Property).type.name/] ;
+					[/for][/if]
+	               [if (trans.guard.specification.stringValue().toString() <> 'invalid')]
+	               guard [trans.guard.specification.stringValue()/];
+	               [/if] 
+	               [for (trig : Trigger | trans.trigger -> filter(Trigger))]
+	                [if(trig.name.toString()<>'')]
+	               	sync [trig.name/];
+	                [/if]
+	               [/for]
+	               
+	               
+	              [if (trans.effect.oclIsUndefined()<>true)]   
+	              	assign [trans.effect.oclAsType(OpaqueBehavior)._body/];
+	             [/if]  
+	         }
+	          
+	        [/for]
+ [/for]
+
+
+
+
+}
+[/template]
+[query public prepareRequirementFile(model:Model) : String= 
+    invoke('org.eclipse.acceleo.module.transformation.UML2Services', 'prepareRequirementFile(org.eclipse.uml2.uml.Model)', Sequence{model})
+  /]
+[query public globalDeclPreparation(model:Model) : String= 
+    invoke('org.eclipse.acceleo.module.transformation.UML2Services', 'globalDeclPreparation(org.eclipse.uml2.uml.Model)', Sequence{model})
+  /]
+[query public systemDeclPreparation(model:Model) : String= 
+    invoke('org.eclipse.acceleo.module.transformation.UML2Services', 'systemDeclPreparation(org.eclipse.uml2.uml.Model)', Sequence{model})
+  /]
+[query public writeIntoFile(str:String) : String= 
+    invoke('org.eclipse.acceleo.module.transformation.UML2Services', 'writeIntoFile(String)', Sequence{str})
+  /]

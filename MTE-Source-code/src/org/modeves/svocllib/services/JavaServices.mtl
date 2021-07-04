@@ -1,0 +1,96 @@
+[comment encoding = Cp1252 /]
+[module JavaServices('http://www.eclipse.org/uml2/5.0.0/UML')/]
+
+[query public jsGetProperties(arg0: Model) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'prepareRequirementFile(org.eclipse.uml2.uml.Model)', Sequence{arg0})
+/]
+[query public jsGetEngineVersion(arg0: Model) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getEngineVersion()', Sequence{})
+/]
+[query public jsGetSelectionMethod(arg0: String) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getSelectionMethod()', Sequence{})
+/]
+[query public jsGetSvoclBuild(arg0: Model) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getSvoclBuild()', Sequence{})
+/]
+
+[query public jsGetAssertFileName(arg0: Model) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getAssertFileName()', Sequence{})
+/]
+[query public jsGetPropertyFileName(arg0: Model) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getPropertyFileName()', Sequence{})
+/]
+[query public jsGetTAFileName(arg0: Model) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getTimedAutomataFileName()', Sequence{})
+/]
+
+[query public jsGetBehFileName(arg0: Model) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getBehFileName()', Sequence{})
+/]
+
+[query public jsParseToSVL(arg0 : String, arg1:String) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'parseToSVL(java.lang.String, java.lang.String)', Sequence{arg0, arg1})
+/]
+
+[query public jsGetDate(arg0: Model) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getDate()', Sequence{})
+/]
+
+[query public jsToBinary(arg0 : String) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'toBinary(java.lang.String)', Sequence{arg0})
+/]
+
+[query public jsGetPropName(arg0 : String) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getPropName(java.lang.String)', Sequence{arg0})
+/]
+
+[query public jsMakeIdentifier(arg0 : String, arg1 : Boolean) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'makeIdentifier(java.lang.String, boolean)', Sequence{arg0, arg1})
+/]
+
+[query public jsPolishStatement(arg0 : String, arg1:String) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'polishStatement(java.lang.String, java.lang.String)', Sequence{arg0, arg1})
+/]
+
+[query public jsGetCurrentVar(arg0 : StateMachine) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getCurrentVar(org.eclipse.uml2.uml.StateMachine)', Sequence{arg0})
+/]
+
+[query public jsGetCurrentVar(arg0 : State) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getCurrentVar(org.eclipse.uml2.uml.State)', Sequence{arg0})
+/]
+
+[query public jsGetNextVar(arg0 : StateMachine) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getNextVar(org.eclipse.uml2.uml.StateMachine)', Sequence{arg0})
+/]
+
+[query public jsGetNextVar(arg0 : State) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getNextVar(org.eclipse.uml2.uml.State)', Sequence{arg0})
+/]
+
+[query public jsGetFsmCurrentVar(arg0 : Vertex) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getFsmCurrentVar(org.eclipse.uml2.uml.Vertex)', Sequence{arg0})
+/]
+
+[query public jsGetFsmNextVar(arg0 : Vertex) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getFsmNextVar(org.eclipse.uml2.uml.Vertex)', Sequence{arg0})
+/]
+
+[query public jsGetInitialState(arg0 : State) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getInitialState(org.eclipse.uml2.uml.State)', Sequence{arg0})
+/]
+
+[query public jsGetConditionStr(arg0 : Transition, arg1:String) : String
+ = invoke('org.modeves.svocllib.services.JavaServices', 'getConditionStr(org.eclipse.uml2.uml.Transition, java.lang.String)', Sequence{arg0, arg1})
+/]
+
+[query public jsGetTargets(arg0 : Vertex) : Sequence(Vertex)
+ = invoke('org.modeves.svocllib.services.JavaServices', 'getTargets(org.eclipse.uml2.uml.Vertex)', Sequence{arg0})
+/]
+
+[query public jsGetTrnsTo(arg0 : Vertex, arg1 : Vertex) : Sequence(Transition)
+ = invoke('org.modeves.svocllib.services.JavaServices', 'getTrnsTo(org.eclipse.uml2.uml.Vertex, org.eclipse.uml2.uml.Vertex)', Sequence{arg0, arg1})
+/]
+[query public jsGetTimedAutomataFiles(arg0: String) : String
+	= invoke('org.modeves.svocllib.services.JavaServices', 'getTimedAutomataFile()', Sequence{})
+/]

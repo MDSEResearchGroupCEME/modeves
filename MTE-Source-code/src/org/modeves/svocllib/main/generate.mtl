@@ -1,0 +1,607 @@
+[comment encoding = UTF-8 /]
+[**
+ * Main module.
+ */]
+[module generate('http://www.eclipse.org/uml2/5.0.0/UML', 'http://www.eclipse.org/papyrus/0.7.0/SysML', 'http://www.eclipse.org/papyrus/0.7.0/SysML/Activities', 'http://www.eclipse.org/papyrus/0.7.0/SysML/Blocks', 'http://www.eclipse.org/papyrus/0.7.0/SysML/Constraints', 'http://www.eclipse.org/papyrus/0.7.0/SysML/PortAndFlows', 'http://www.eclipse.org/papyrus/0.7.0/SysML/ModelElements', 'http://www.eclipse.org/papyrus/0.7.0/SysML/StateMachines', 'http://www.eclipse.org/emf/2002/Ecore')]
+
+[import org::modeves::svocllib::services::JavaServices /]
+
+[**
+ * Main template generateElement.
+ * @param model
+ */]
+[template public generateElement(model : Model)]
+[comment @main/]
+[if(''.jsGetSelectionMethod()='SystemVerilog' or ''.jsGetSelectionMethod()='Both')]
+	[if(model.jsGetAssertFileName() <> null)]
+	[model.generateProps()/]
+	[/if]
+	[if(model.jsGetBehFileName() <> null)]
+	[model.generateBeh()/]
+	[/if]
+[/if]
+[if(''.jsGetSelectionMethod()='TimedAutomata'or ''.jsGetSelectionMethod()='Both')]
+
+[file (model.jsGetPropertyFileName(), false)]
+[let allRequirements : String = model.jsGetProperties()]
+[for(datareq: String | allRequirements.tokenize(';'))]
+[datareq/]
+[/for]
+[/let]
+[/file]
+[file (model.jsGetTAFileName(), false)]
+// Global Declaration
+[for (stmachine : StateMachine | model.ownedElement->filter(StateMachine))]
+[if(stmachine.getValue(stmachine.getAppliedStereotype('Profile::GlobalDeclaration'), 'Properties').toString() <> 'invalid')]
+	[for(ocl:OclAny | stmachine.getValue(stmachine.getAppliedStereotype('Profile::GlobalDeclaration'), 'Properties'))]
+		[if (ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('true'))]
+const [ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+		[elseif(ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('false'))]
+[ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+		[/if]
+	[/for]
+[/if]
+[/for]	
+// Template Definition
+
+[generateXTAFile(model)/]
+
+// System Definition
+[for (stmachine : StateMachine | model.ownedElement->filter(StateMachine))]
+[if(stmachine.getValue(stmachine.getAppliedStereotype('Profile::SystemDeclaration'), 'Properties').toString() <> 'invalid')]
+	[for(ocl:OclAny | stmachine.getValue(stmachine.getAppliedStereotype('Profile::SystemDeclaration'), 'Properties'))]
+		[if (ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('true'))]
+const [ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+
+		[elseif(ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('false'))]
+[ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+
+		[/if]
+	[/for]
+[/if]
+
+[if(stmachine.getValue(stmachine.getAppliedStereotype('Profile::SystemDeclaration'), 'initilizeSystem').toString() <> 'invalid')]
+	[for(ocl:OclAny | stmachine.getValue(stmachine.getAppliedStereotype('Profile::SystemDeclaration'), 'initilizeSystem'))]	
+		[if (ocl.oclAsType(Operation).name.equalsIgnoreCase('initilizeSystem'))]
+       		[for (com : FunctionBehavior | ocl.oclAsType(Operation).method->filter(FunctionBehavior))]
+[com._body/]
+            [/for]
+        [/if]	
+	[/for]
+[/if]
+[/for]
+[/file]
+
+[/if]
+
+[/template]
+
+[template public generateProps(model : Model)]
+[file (model.jsGetAssertFileName(), false, 'UTF-8')]
+[comment][file ('Created_A', false, 'UTF-8')][/comment]
+[comment][for (cls : Class | model.eAllContents(Class)-> select(c | c.oclIsTypeOf(Class)))]
+[if (cls.eContents(StateMachine)->size() = 1)][/comment]
+[let sm : StateMachine = (model.eAllContents(StateMachine)->first())] 
+[let region : Region = (sm.eContents(Region)->first())]
+ 
+//////////////////////////////////////////////////////////////
+// -- This file has been auto-generated by MODEVES Transformation Engine v [model.jsGetEngineVersion()/]
+//
+// Company: 
+// Engineer:
+//
+// Create Date: [model.jsGetDate()/]
+// Design Name: 
+// Module Name: [sm.name.jsMakeIdentifier(true)+'_assertions'/]
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////
+
+[for(enm : Enumeration | model.eAllContents(Enumeration))]
+package [enm.name.jsMakeIdentifier(true)+'_pkg'/];
+typedef enum {
+[for (enumLit:EnumerationLiteral | enm.eContents(EnumerationLiteral))]
+  [enumLit.name/],
+[/for]
+} [enm.name.jsMakeIdentifier(true)/];
+
+import [enm.name.jsMakeIdentifier(true)+'_pkg'/] ::*;
+[/for]
+
+module [sm.name.jsMakeIdentifier(true)+'_assertions'/] (
+[for(flowport : FlowPort | model.siblings(FlowPort))]
+[let port:Port = flowport.base_Port]
+	[if(flowport.direction.toString() = 'in' or flowport.direction.toString() = 'inout')]
+		[if((port.type.name <> null) and port.type.oclIsTypeOf(Enumeration))]
+        input [(port.type.name).jsMakeIdentifier(true)/] [port.name/],
+		[else]
+        input [port.name/],
+		[/if]
+	[/if]
+[/let]
+[/for]
+[comment][for (prop: Property | model.eAllContents(Property)->select(oclIsTypeOf(Property)))]
+[prop.jsGetTypeStr(prop.type.name)/][prop.name/]
+[/for][/comment]
+    );
+
+[for (c:Constraint | sm.eContents(Constraint))]
+	[for (oe:OpaqueExpression | c.eContents(OpaqueExpression))]
+
+property [c.jsGetPropName(c.name)/];
+    [(''+oe._body).jsParseToSVL('asrt')/]
+endproperty : [(c.name).jsGetPropName()/];
+
+[(c.name).jsGetPropName()/]_1 : assert property(@ (posedge clk) [(c.name).jsGetPropName()/]);
+	[/for]
+[/for]
+
+endmodule
+[/let][/let]
+[comment][/if][/for][/comment]
+[/file]
+[/template]
+
+[template public generateBeh(model : Model)]
+[file (model.jsGetBehFileName(), false, 'UTF-8')]
+[comment][file ('Created_B', false, 'UTF-8')][/comment]
+[comment][for (cls : Class | model.eAllContents(Class)-> select(c | c.oclIsTypeOf(Class)))]
+[if (cls.eContents(StateMachine)->size() = 1)][/comment]
+[let sm : StateMachine = (model.eAllContents(StateMachine)->first())] 
+[let region : Region = (sm.eContents(Region)->first())]
+
+//////////////////////////////////////////////////////////////
+// -- This file has been auto-generated by MODEVES Transformation Engine v [model.jsGetEngineVersion()/]
+//
+// Company: 
+// Engineer:
+//
+// Create Date: [model.jsGetDate()/]
+// Design Name: 
+// Module Name: [sm.name.jsMakeIdentifier(true)+'_behavior'/]
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////
+##el#
+[for(enm : Enumeration | model.eAllContents(Enumeration))]
+package [enm.name.jsMakeIdentifier(true)+'_pkg'/];
+typedef enum ##ob#
+[for (enumLit:EnumerationLiteral | enm.eContents(EnumerationLiteral))]
+##sp#   [enumLit.name/],
+[/for]
+##cb# [enm.name.jsMakeIdentifier(true)/];
+endpackage
+##el#
+import [enm.name.jsMakeIdentifier(true)+'_pkg'/] ::*;
+[/for]
+module [sm.name.jsMakeIdentifier(true)+'_behavior'/] (
+[for(flowport : FlowPort | model.siblings(FlowPort))]
+[let port:Port = flowport.base_Port]
+	[if(flowport.direction.toString() <> 'inout')]
+		[if((port.type.name <> null) and port.type.oclIsTypeOf(Enumeration))]
+##sp#  [flowport.direction.toString()+'put'/] [(port.type.name).jsMakeIdentifier(true)/] [port.name/],
+		[else]
+##sp#  [flowport.direction.toString()+'put'/] [port.name/],
+		[/if]
+	[/if]
+[/let]
+[/for]
+    );
+##el#
+[let enmName : String = (model.eAllContents(Enumeration)->first()).name.jsMakeIdentifier(true)]
+[enmName/] [sm.jsGetCurrentVar()/];
+[enmName/] [sm.jsGetNextVar()/];
+[for(fsm : State | region.eAllContents(State)->select(qIsFSM()))]
+[enmName/] [fsm.jsGetCurrentVar()/];
+[enmName/] [fsm.jsGetNextVar()/];
+[/for]
+[/let]
+##el#
+[for(flowport : FlowPort | model.siblings(FlowPort))]
+[let port:Port = flowport.base_Port]
+[if(flowport.direction.toString() = 'inout')]
+logic [port.name/];
+[/if]
+[/let]
+[/for]
+##el#
+[for(flowport : FlowPort | model.siblings(FlowPort))]
+[let port:Port = flowport.base_Port]
+[if(port.default <> null and port.default <> '')]
+[port.name/] = [port.defaultValue.stringValue()/];     [comment] It could simply be 'port.default'[/comment]
+[/if]
+[/let]
+[/for]
+##el#
+always @ (*)
+{
+[sm.jsGetNextVar()/] = [sm.jsGetCurrentVar()/];
+case ([sm.name.jsMakeIdentifier(true)/])
+{##dl#
+[for(state : State | region.eContents(State)->select(not qIsFSM()))]
+	[state.name/]:
+	{
+	[state.execState()/]
+	}
+##el#
+[/for]
+}case
+}
+##el#
+[for(fsm : State | region.eContents(State)->select(qIsFSM()))]
+always @ (*)
+{
+[fsm.jsGetNextVar()/] = [fsm.jsGetCurrentVar()/];
+[fsm.execFSM()/]
+}
+[/for]
+##el#
+
+[for (tCls : Class | model.eAllContents(Class)->select(oclIsTypeOf(Class) and name = 'Timer'))]
+[if (tCls.eAllContents(OpaqueExpression) -> size() > 0)]
+[let oe:OpaqueExpression = tCls.eAllContents(OpaqueExpression) ->first()]
+[let tInit : Property = tCls.eContents(Property)->select(p|p.name = 'InitialValue')->first()]
+[let tMax : Property = tCls.eContents(Property)->select(p|p.name = 'TimerMaxCount')->first()]
+
+always @ ( * )
+  {
+    if ([oe._body/])
+	{##dl#
+       timer <= [tInit.default/];
+    }##dl#
+	else if (timer != 2'b[tMax.default.jsToBinary()/])
+	{##dl#
+       timer <= timer + 2'b01;
+	}##dl#
+  }
+[/let]
+[/let]
+[/let]
+[/if]
+[/for]
+endmodule
+[/let]
+[/let]
+[comment][/if]
+[/for][/comment]
+[/file]
+[/template]
+
+[template public execFSM(fsm : State)]
+##el#
+//////  [fsm.name/] cases
+case ([fsm.name.jsMakeIdentifier(true)/])
+{##dl#
+[let fsmRgn : Region = (fsm.eContents(Region)->first())]
+[for(state : State | fsmRgn.eContents(State)->select(not qIsFSM()))]
+	[state.name/]:
+	{
+	[state.execState()/]
+	}
+##el#
+[/for]
+	default:				// SVOCL Engine Note: Do check for correctness
+	{
+		[execState(fsm)/]
+	}
+}
+[for(fsm : State | fsmRgn.eContents(State)->select(qIsFSM()))]
+[fsm.execFSM()/]
+[/for]
+[/let]
+[/template]
+
+[template public execState(source : Vertex)]
+[for(target : Vertex | source.jsGetTargets())]
+	[if(target.oclIsKindOf(State))]
+		[let state : State = target.oclAsType(State)]
+		[if(state.qIsFSM())][comment] FSM [/comment]
+			[for(trn : Transition | source.jsGetTrnsTo(state))]
+	[trn.handleGuard()/]
+	[trn.handleEffect()/]
+	[state.jsGetCurrentVar()/] = [state.jsGetInitialState()/];
+	[trn.tClosingBracket()/]
+			[/for]
+		[else][comment] State [/comment]
+			[for(trn : Transition | source.jsGetTrnsTo(state))]
+	[trn.handleGuard()/]
+	[trn.handleEffect()/]
+	[target.jsGetFsmNextVar()/] = [state.name/];
+	[trn.tClosingBracket()/]
+			[/for]
+		[/if]
+		[/let]
+	[elseif(target.oclIsKindOf(Pseudostate))]
+		[let psState : Pseudostate = target.oclAsType(Pseudostate)]
+		[if(psState.qIsChoice())][comment] Choice [/comment]
+			[let trn : Transition = source.jsGetTrnsTo(psState)->first()]			
+	[trn.handleGuard()/]
+	[trn.handleEffect()/]
+	[psState.execState()/]
+	[trn.tClosingBracket()/]
+			[/let]
+		[elseif(psState.qIsJoin())][comment] Join [/comment]
+			[if(source.jsGetTrnsTo(psState) -> size() = 1)]
+			[let trn : Transition = source.jsGetTrnsTo(psState)->first()]			
+	[trn.handleGuard()/]
+	[trn.handleEffect()/]
+	[trn.tClosingBracket()/]
+	[trn.handleGuardForJoin1()/]
+	[psState.execState()/]
+	[trn.tClosingBracket()/]
+			[/let]
+			[elseif(source.jsGetTrnsTo(psState) -> size() > 1)]
+				[for(trn : Transition | source.jsGetTrnsTo(psState))]
+	[trn.handleGuard()/]
+	[trn.handleEffect()/]
+	[trn.tClosingBracket()/]
+				[/for]
+	if ([for(trn : Transition | source.jsGetTrnsTo(psState))] [trn.handleGuardForJoin2()/][/for] )
+	{
+	[psState.execState()/]
+	}
+			[/if]
+		[elseif(psState.qIsFork())][comment] Fork [/comment]
+			[let trn : Transition = source.jsGetTrnsTo(psState) -> first()]
+	[trn.handleGuard()/]
+	[trn.handleEffect()/]
+	[psState.execState()/]
+	[trn.tClosingBracket()/]
+			[let regn:Region = source.ancestors(Region)->first()]
+			[if(regn.name = 'Region1')]
+				[for(t2 : Vertex | psState.jsGetTargets())]
+					[if(t2.qIsFSM())]
+	else
+	{
+		[for(fsm:State | regn.eContents(State)->select(qIsFSM()))]
+	[fsm.jsGetCurrentVar()/] = [fsm.jsGetNextVar()/];
+		[/for]
+	}
+					[/if]
+				[/for]
+			[/if]
+			[/let]
+			[/let]
+		[/if]
+		[/let]
+	[/if]
+[/for]
+[/template]
+
+[template public handleGuard(trn: Transition)]
+[let expr : String = trn.jsGetConditionStr('beh')]
+[if(expr.size() > 0)]
+if([expr/])
+{
+[/if]
+[/let]
+[/template]
+
+[template public handleGuardForJoin1(trn: Transition)]	[comment] This template should be improved [/comment]
+[let expr : String = trn.jsGetConditionStr('beh')]
+[if(expr.size() > 0)]
+if(([expr/]) && ...)
+{
+[/if]
+[/let]
+[/template]
+
+[template public handleGuardForJoin2(trn: Transition)]
+[let expr : String = trn.jsGetConditionStr('beh')]
+[if(expr.size() > 0)]([expr/]) && 
+[/if]
+[/let]
+[/template]
+
+[template public handleEffect(trn: Transition)]
+[if(trn.effect <> null)]
+	[(trn.effect.oclAsType(OpaqueBehavior)._body).jsPolishStatement('beh')/];
+[/if]
+[/template]
+
+[template public zGuardConstraint(trn: Transition)]
+[let expr : String = trn.jsGetConditionStr('beh')]
+[if(expr.size() > 0)]
+[expr/]
+[/if]
+[/let]
+[/template]
+
+[template public zEffect(trn: Transition)]
+[if(trn.effect <> null)]
+[trn.effect.oclAsType(OpaqueBehavior)._body/]
+[/if]
+[/template]
+
+[template public tClosingBracket(trn: Transition)]
+[if(trn.qHasGuard())]}[/if]
+[/template]
+
+[template public generateXTAFile(m: Model)]
+[let sm : StateMachine = (m.eAllContents(StateMachine)->first())]
+[for(r: Region | sm.ownedElement -> filter(Region))]
+	[for(initialstatecheck: Pseudostate | r.ownedElement -> filter(Pseudostate))]
+    	[if((initialstatecheck.kind.toString() = 'initial')<>false)]
+process [sm.name/]([if(sm.getValue(sm.getAppliedStereotype('Profile::LocalDeclaration'), 'TemplateParam').toString()<> 'invalid')][for(ocl:OclAny | sm.getValue(sm.getAppliedStereotype('Profile::LocalDeclaration'), 'TemplateParam')) separator (',')][if (ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('true'))]const [ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][elseif(ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('false'))][ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][/if][/for][/if]){
+
+// local Declaration
+	
+[if(sm.getValue(sm.getAppliedStereotype('Profile::LocalDeclaration'), 'Properties').toString()<> 'invalid')]
+	[for(ocl:OclAny | sm.getValue(sm.getAppliedStereotype('Profile::LocalDeclaration'), 'Properties'))]
+		[if (ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('true'))]
+const [ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+		[elseif(ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('false'))]
+[ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+		[/if]
+	[/for]
+[/if]
+[if(sm.getValue(sm.getAppliedStereotype('Profile::LocalDeclaration'), 'Operations').toString()<> 'invalid')]
+	[for(ocl:OclAny | sm.getValue(sm.getAppliedStereotype('Profile::LocalDeclaration'), 'Operations'))]
+[ocl.oclAsType(Operation).type.name/] [ocl.oclAsType(Operation).name/]()
+[for (com : FunctionBehavior | ocl.oclAsType(Operation).method->filter(FunctionBehavior))]
+[com._body/]
+[/for]
+	[/for]
+[/if]
+	state
+		[for (st : State | r.ownedElement -> filter(State))]
+		[st.name/][if (st.stateInvariant.specification.stringValue().toString() <> 'invalid')]{[st.stateInvariant.specification.stringValue()/]}[/if],
+		[/for]
+		[for(initialstate: Pseudostate | r.ownedElement -> filter(Pseudostate))]
+		[if(initialstate.kind.toString() <> 'initial')]
+        [initialstate.name/][if(initialstate.getValue(initialstate.getAppliedStereotype('Profile::Invariant'), 'InvariantText').toString()<> 'invalid')][for(ocl:OclAny | initialstate.getValue(initialstate.getAppliedStereotype('Profile::Invariant'), 'InvariantText'))]{[ocl/]}[/for][/if],
+		[/if][/for]
+		[for(initialstate: Pseudostate | r.ownedElement -> filter(Pseudostate))]
+		[if(initialstate.kind.toString() = 'initial')] 
+		[initialstate.name/];
+		[for (fs : State | r.ownedElement -> filter(FinalState))]
+    commit
+			[fs.name/];
+		[/for]
+	init [initialstate.name/];
+		[/if]
+		[/for]
+	trans
+	[for(trans: Transition | r.ownedElement -> filter(Transition) )separator (',') after(';')]
+	   [if (trans.source.name <> 'invalid' or trans.target.name <> 'invalid')]
+		[trans.source.name/] -> [trans.target.name/]
+		{
+									               [if (trans.guard.specification.stringValue().toString() <> 'invalid' and trans.guard.specification.stringValue().toString()<>'true' and trans.guard.specification.stringValue().toString()<> 'false')]
+									               guard [trans.guard.specification.stringValue()/];
+									               [elseif(trans.guard.specification.stringValue().toString()<>'true' or trans.guard.specification.stringValue().toString()<> 'false')]
+													[for(port: Port | trans.guard.constrainedElement -> filter (Port))]
+												   guard [port.name/]==[trans.guard.specification.stringValue()/];
+													[/for]
+													[/if]
+
+									              [if (trans.effect.oclIsUndefined()<>true)]   
+									              	assign [trans.effect.oclAsType(OpaqueBehavior)._body.toString().replaceAll(' ',  ',')/];
+									             [/if]  
+		}
+		[/if]
+	[/for]
+	}
+[/if]
+[/for]
+[for (st : State | r.ownedElement -> filter(State))]
+	[for (hasreg: Region | st.ownedElement-> filter(Region))]
+		[if (hasreg<>null)]
+			[processNestedStateMachine(st,m)/]
+		[/if]
+	[/for]
+[/for]
+[/for]
+[/let]
+[/template]
+[template public processNestedStateMachine(stm: State, m: Model)]
+
+process [stm.name/]([if(stm.getValue(stm.getAppliedStereotype('Profile::LocalDeclaration'), 'TemplateParam').toString()<> 'invalid')][for(ocl:OclAny | stm.getValue(stm.getAppliedStereotype('Profile::LocalDeclaration'), 'TemplateParam')) separator (',')][if (ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('true'))]const [ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][elseif(ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('false'))][ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][/if][/for][/if]){
+
+// local Declaration
+	
+[if(stm.getValue(stm.getAppliedStereotype('Profile::LocalDeclaration'), 'Properties').toString()<> 'invalid')]
+	[for(ocl:OclAny | stm.getValue(stm.getAppliedStereotype('Profile::LocalDeclaration'), 'Properties'))]
+		[if (ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('true'))]
+const [ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+		[elseif(ocl.oclAsType(Property).isStatic.toString().equalsIgnoreCase('false'))]
+[ocl.oclAsType(Property).type.name/] [ocl.oclAsType(Property).name/][if(ocl.oclAsType(Property).defaultValue.oclIsUndefined()<>true)] = [if(ocl.oclAsType(Property).type.name.equalsIgnoreCase('bool'))][ocl.oclAsType(Property).defaultValue.booleanValue()/][elseif(ocl.oclAsType(Property).type.name.equalsIgnoreCase('int'))][ocl.oclAsType(Property).defaultValue.integerValue()/][/if][/if];
+		[/if]
+	[/for]
+[/if]
+[if(stm.getValue(stm.getAppliedStereotype('Profile::LocalDeclaration'), 'Operations').toString()<> 'invalid')]
+	[for(ocl:OclAny | stm.getValue(stm.getAppliedStereotype('Profile::LocalDeclaration'), 'Operations'))]
+[ocl.oclAsType(Operation).type.name/] [ocl.oclAsType(Operation).name/]([for (prop : Parameter | ocl.oclAsType(Operation).ownedParameter->filter(Parameter))][if(prop.direction.toString()= 'in')][prop.type.name/] [prop.name/][/if][/for])
+[for (com : FunctionBehavior | ocl.oclAsType(Operation).method->filter(FunctionBehavior))]
+[com._body/]
+[/for]
+	[/for]
+[/if]
+
+
+[for(r: Region | stm.ownedElement -> filter(Region))]
+   state
+		[for (st : State | r.ownedElement -> filter(State))]
+		[st.name/][if (st.stateInvariant.specification.stringValue().toString() <> 'invalid')]{[st.stateInvariant.specification.stringValue()/]}[/if],
+		[/for]
+		[for(initialstate: Pseudostate | r.ownedElement -> filter(Pseudostate))]
+		[if(initialstate.kind.toString() <> 'initial')]
+        [initialstate.name/][if(initialstate.getValue(initialstate.getAppliedStereotype('Profile::Invariant'), 'InvariantText').toString()<> 'invalid')][for(ocl:OclAny | initialstate.getValue(initialstate.getAppliedStereotype('Profile::Invariant'), 'InvariantText'))]{[ocl/]}[/for][/if],
+		[/if]
+		[/for]
+		[for(initialstate: Pseudostate | r.ownedElement -> filter(Pseudostate))]
+		[if(initialstate.kind.toString() = 'initial')] 
+		[initialstate.name/];
+		[for (fs : State | r.ownedElement -> filter(FinalState))]
+    commit
+		[fs.name/];
+		[/for]
+	init [initialstate.name/];
+		[/if]
+		[/for]
+	
+		trans
+	    	[for(trans: Transition | r.ownedElement -> filter(Transition) ) separator(',') after(';')]
+	     	 [trans.source.name/] -> [trans.target.name/]
+	         {
+	               [if (trans.guard.specification.stringValue().toString() <> 'invalid')]
+	               guard [trans.guard.specification.stringValue()/];
+	               [/if] 
+	              [if (trans.effect.oclIsUndefined()<>true)]   
+	              	assign [trans.effect.oclAsType(OpaqueBehavior)._body/];
+	             [/if]  
+	         }
+	          
+	        [/for]
+ [/for]
+
+
+
+
+}
+[/template]
+
+[query public qHasGuard(trn: Transition) : Boolean
+= (trn.zGuardConstraint()+'').trim().size() > 0
+/]
+
+[query public qHasEffect(trn: Transition) : Boolean
+= (trn.zEffect()+'').trim().size() > 0
+/]
+
+[query public qIsFSM(vertex : Vertex) : Boolean
+	= vertex.oclIsTypeOf(State) and vertex.eContents(Region) -> size() > 0
+/]
+
+[comment][query public qIsState(vertex : Vertex) : Boolean
+	= vertex.oclIsTypeOf(State) and vertex.eContents(Region) -> size() = 0
+/][/comment]
+
+[query public qIsChoice(vertex : Vertex) : Boolean
+	= vertex.oclIsKindOf(Pseudostate) and (vertex.oclAsType(Pseudostate).kind.toString() = 'choice') 
+/]
+
+[query public qIsJoin(vertex : Vertex) : Boolean
+	= vertex.oclIsKindOf(Pseudostate) and (vertex.oclAsType(Pseudostate).kind.toString() = 'join') 
+/]
+
+[query public qIsFork(vertex : Vertex) : Boolean
+	= vertex.oclIsKindOf(Pseudostate) and (vertex.oclAsType(Pseudostate).kind.toString() = 'fork') 
+/]
